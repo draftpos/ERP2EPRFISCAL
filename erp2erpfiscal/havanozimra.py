@@ -10,15 +10,39 @@ from io import BytesIO
 import frappe
 from frappe import _, msgprint, throw
 
+def get_user_company():
+    try:
+        user = frappe.session.user
+        company = frappe.db.get_value(
+            "User Permission",
+            {"user": user, "allow": "Company"},
+            "for_value"
+        )
+        if not company:
+            frappe.throw("No company permission found for this user.")
+        return company
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), f"Error fetching company for {user}: {e}")
+        return None
 
 def get_config_value(fieldname: str) -> str:
     try:
         doctype = "Havano Zimra User"
-        # Fetch the first document (ordered by creation)
-        first_doc = frappe.get_all(doctype, fields=[fieldname], limit=1, order_by="creation asc")
+        company = get_user_company()
 
-        if first_doc and fieldname in first_doc[0]:
-            return first_doc[0][fieldname]
+        if not company:
+            frappe.throw("No company permission found for the logged-in user.")
+        # Fetch record where company matches the user's company
+        record = frappe.get_all(
+            doctype,
+            filters={"company": company},
+            fields=[fieldname],
+            limit=1,
+            order_by="creation asc"
+        )
+        if record and fieldname in record[0]:
+            return record[0][fieldname]
         else:
             return None
     except Exception as e:
@@ -203,6 +227,23 @@ def generate_random_zimra_item_id(vat: str) -> str:
 
 @frappe.whitelist()
 def send_from_button(invoice_name):
+    hcloud_baseurl = get_config_value("server_address")
+    hcloud_key = get_config_value("api_key")
+    hcloud_secret = get_config_value("api_secret")
+    devicesn = get_config_value("device_serial_number")
+    
+    company_name=get_config_value("company")
+    user_company = get_user_company()
+    print (company_name)
+    if not all([hcloud_baseurl, hcloud_key, hcloud_secret, devicesn]):
+        frappe.log_error("Invoice Status",f"{devicesn} One or more user zimra information is missing, Please update Zimra Information")
+        msgprint("One or more user zimra information is missing, Please update Zimra Information")
+        return  "Cannot send invoice to zimra"
+
+    if user_company != company_name:
+        frappe.log_error("Invoice Status",f"{devicesn} Cannot send invoice to zimra, User not assign to any company")
+        return  "Cannot send invoice to zimra, User not assign to any company"
+    
     time.sleep(3)
     doc = frappe.get_doc("Sales Invoice", invoice_name)
         # Prevent duplicate sending
@@ -218,6 +259,19 @@ def send_from_button(invoice_name):
     # return msg
 
 def send_from_hook(doc, method):
+    hcloud_baseurl = get_config_value("server_address")
+    hcloud_key = get_config_value("api_key")
+    hcloud_secret = get_config_value("api_secret")
+    devicesn = get_config_value("device_serial_number")
+    company_name=get_config_value("company")
+    user_company = get_user_company()
+    if not all([hcloud_baseurl, hcloud_key, hcloud_secret, devicesn]):
+        msgprint("One or more user zimra information is missing, Please update Zimra Information")
+        return  "Cannot send invoice to zimra"
+
+    if user_company != company_name:
+        return  "Cannot send invoice to zimra, User not assign to any company"
+     
     if doc.custom_zimra_status == "1":
         return "Invoice succesfully Sent to Zimra"
     s_invoice_name = doc.name
