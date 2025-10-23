@@ -141,6 +141,11 @@ doctype_js = {
 # ---------------
 # Hook on document methods and events
 
+doc_events = {
+    "Sales Invoice": {
+        "on_submit": "erp2erpfiscal.havanozimra.send_from_hook"
+    }
+}
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",

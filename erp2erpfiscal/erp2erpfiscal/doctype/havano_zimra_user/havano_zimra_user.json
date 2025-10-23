@@ -1,23 +1,26 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-07-28 17:46:18.263682",
+ "autoname": "field:device_serial_number",
+ "creation": "2025-10-21 16:44:23.620582",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "please_enter_your_havano_zimra_user_details_section",
+  "section_break_7uk5",
+  "company",
   "api_key",
   "api_secret",
   "device_serial_number",
-  "server_address"
+  "server_address",
+  "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "please_enter_your_havano_zimra_user_details_section",
-   "fieldtype": "Section Break",
-   "label": "Please Enter your Havano Zimra User Details"
+   "fieldname": "section_break_7uk5",
+   "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "api_key",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -25,6 +28,7 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "api_secret",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -32,38 +36,65 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "device_serial_number",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Device Serial Number",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
+   "allow_on_submit": 1,
+   "default": "https://erpfiscal.havano.online/",
    "fieldname": "server_address",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Server Address",
    "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Havano Zimra User",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "issingle": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-09-02 21:12:30.077947",
+ "modified": "2025-10-22 18:26:10.418623",
  "modified_by": "Administrator",
  "module": "Erp2Erpfiscal",
  "name": "Havano Zimra User",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
    "delete": 1,
    "email": 1,
+   "export": 1,
    "print": 1,
    "read": 1,
+   "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

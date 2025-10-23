@@ -28,7 +28,7 @@ frappe.ui.form.on('Sales Invoice', {
 });
 
 frappe.ui.form.on('Sales Invoice', {
-    before_submit(frm) {
+    on_submit(frm) {
         custom_submit_function(frm);
     }
 });
@@ -38,7 +38,7 @@ function custom_submit_function(frm) {
       frappe.call({
                     method: 'erp2erpfiscal.havanozimra.send_from_button',
                     args: {
-                        invoice_name: frm.doc.name // Send the Sales Invoice name
+                        invoice_name: frm.doc.name  // Send the Sales Invoice name
                     },
                     freeze: true,
                     freeze_message: "Sending to ZIMRA...",

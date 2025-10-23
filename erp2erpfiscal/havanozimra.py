@@ -13,11 +13,16 @@ from frappe import _, msgprint, throw
 
 def get_config_value(fieldname: str) -> str:
     try:
-        doctype ="Havano Zimra User"
-        value = frappe.db.get_single_value(doctype, fieldname)
-        return value
+        doctype = "Havano Zimra User"
+        # Fetch the first document (ordered by creation)
+        first_doc = frappe.get_all(doctype, fields=[fieldname], limit=1, order_by="creation asc")
+
+        if first_doc and fieldname in first_doc[0]:
+            return first_doc[0][fieldname]
+        else:
+            return None
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(),f"Error fetching {fieldname} from {doctype}: {e}")
+        frappe.log_error(frappe.get_traceback(), f"Error fetching {fieldname} from {doctype}: {e}")
         return None
 
 #ftoken  = ""
@@ -198,8 +203,25 @@ def generate_random_zimra_item_id(vat: str) -> str:
 
 @frappe.whitelist()
 def send_from_button(invoice_name):
-    s_invoice_name = invoice_name
+    time.sleep(3)
     doc = frappe.get_doc("Sales Invoice", invoice_name)
+        # Prevent duplicate sending
+    print(doc.custom_zimra_status)
+    if bool(doc.custom_zimra_status) == True:
+        return "Invoice Successfully Sent to Zimra"
+    else:
+        msg = send(doc,"manual")
+        return "Invoice Resent"
+    # s_invoice_name = invoice_name
+    # doc = frappe.get_doc("Sales Invoice", invoice_name)
+    # msg = send(doc,"manual")  # "manual" as method name for button call
+    # return msg
+
+def send_from_hook(doc, method):
+    if doc.custom_zimra_status == "1":
+        return "Invoice succesfully Sent to Zimra"
+    s_invoice_name = doc.name
+    #doc = frappe.get_doc("Sales Invoice", doc.name)
     msg = send(doc,"manual")  # "manual" as method name for button call
     return msg
 
@@ -323,7 +345,7 @@ def send(doc,method):
         print("Checking json response")
         message_data = data.get("message", {})
         update_sales_invoice(invoice_number, 1,message_data.get("receiptGlobalNo"),message_data.get("FiscalDay"),message_data.get("EFDSERIAL"),message_data.get("DeviceID"),message_data.get("QRcode"),message_data.get("VerificationCode"))
-        time.sleep(2)
+        time.sleep(3)
     except Exception as e:
         frappe.log_error(frappe.get_traceback(),"Error Updateing Invoice")
         return response_msg
