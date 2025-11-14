@@ -38,7 +38,8 @@ function custom_submit_function(frm) {
       frappe.call({
                     method: 'erp2erpfiscal.havanozimra.send_from_button',
                     args: {
-                        invoice_name: frm.doc.name  // Send the Sales Invoice name
+                        invoice_name: frm.doc.name,
+                        credit_note:frm.doc.is_return // Send the Sales Invoice name
                     },
                     freeze: true,
                     freeze_message: "Sending to ZIMRA...",

@@ -160,6 +160,7 @@ def send_invoice_to_cloud(
             "items_xml": items_xml,
             "invoice_type":invoice_tax_type
         }
+        #frappe.log_error(f"{devicesn} Payload", f" {data}")
         #print(f"Tax type: {invoice_tax_type}")
         #print("URL:", url)
         #print("Payload:", data)
@@ -226,7 +227,7 @@ def generate_random_zimra_item_id(vat: str) -> str:
         raise ValueError("Invalid VAT input: must be numeric.")    
 
 @frappe.whitelist()
-def send_from_button(invoice_name):
+def send_from_button(invoice_name,credit_note):
     hcloud_baseurl = get_config_value("server_address")
     hcloud_key = get_config_value("api_key")
     hcloud_secret = get_config_value("api_secret")
@@ -235,6 +236,7 @@ def send_from_button(invoice_name):
     company_name=get_config_value("company")
     user_company = get_user_company()
     print (company_name)
+    print (f"Invoice to Process: {invoice_name}")
     if not all([hcloud_baseurl, hcloud_key, hcloud_secret, devicesn]):
         frappe.log_error("Invoice Status",f"{devicesn} One or more user zimra information is missing, Please update Zimra Information")
         msgprint("One or more user zimra information is missing, Please update Zimra Information")
@@ -244,15 +246,20 @@ def send_from_button(invoice_name):
         frappe.log_error("Invoice Status",f"{devicesn} Cannot send invoice to zimra, User not assign to any company")
         return  "Cannot send invoice to zimra, User not assign to any company"
     
-    time.sleep(3)
-    doc = frappe.get_doc("Sales Invoice", invoice_name)
-        # Prevent duplicate sending
-    print(doc.custom_zimra_status)
-    if bool(doc.custom_zimra_status) == True:
-        return "Invoice Successfully Sent to Zimra"
-    else:
+    print(f"Credit note state: {credit_note}")
+    if credit_note=="1":
+        doc = frappe.get_doc("Sales Invoice", invoice_name)
         msg = send(doc,"manual")
-        return "Invoice Resent"
+        return "Credit Note Sent"
+    # time.sleep(3)
+    # doc = frappe.get_doc("Sales Invoice", invoice_name)
+    #     # Prevent duplicate sending
+    # print(doc.custom_zimra_status)
+    # if bool(doc.custom_zimra_status) == True:
+    #     return "Invoice Successfully Sent to Zimra"
+    # else:
+    #     msg = send(doc,"manual")
+    #     return "Invoice Resent"
     # s_invoice_name = invoice_name
     # doc = frappe.get_doc("Sales Invoice", invoice_name)
     # msg = send(doc,"manual")  # "manual" as method name for button call
@@ -302,7 +309,10 @@ def send(doc,method):
     company = doc.company
     original_invoiceno = doc.return_against
 
+    print (f"Credit note: {iscreditnote}")
+
     if iscreditnote:
+        print (f"Credit note: {iscreditnote}")
         invoice_cr = frappe.get_all("Sales Invoice",
     filters={"name": original_invoiceno},fields=["custom_receiptno"]
     )
@@ -355,7 +365,7 @@ def send(doc,method):
         # Default values if tax not found
         tax_category = ""
         max_net_rate = 0.0
-
+        
         if tax_info:
             tax_category = tax_info[0].tax_category
             max_net_rate = float(tax_info[0].maximum_net_rate or 0)
@@ -399,7 +409,7 @@ def send(doc,method):
         print("Checking json response")
         message_data = data.get("message", {})
         update_sales_invoice(invoice_number, 1,message_data.get("receiptGlobalNo"),message_data.get("FiscalDay"),message_data.get("EFDSERIAL"),message_data.get("DeviceID"),message_data.get("QRcode"),message_data.get("VerificationCode"))
-        time.sleep(3)
+        #time.sleep(3)
     except Exception as e:
         frappe.log_error(frappe.get_traceback(),"Error Updateing Invoice")
         return response_msg
