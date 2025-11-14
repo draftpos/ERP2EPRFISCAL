@@ -1,0 +1,20 @@
+{
+ "content": null,
+ "creation": "2025-07-29 09:29:42.938315",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "",
+ "idx": 0,
+ "modified": "2025-07-29 09:29:42.938315",
+ "modified_by": "Administrator",
+ "module": "Erp2Erpfiscal",
+ "name": "zimra-server-status",
+ "owner": "Administrator",
+ "page_name": "zimra-server-status",
+ "roles": [],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Zimra Servers Status Checker"
+}
